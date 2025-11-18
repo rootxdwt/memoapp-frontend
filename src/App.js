@@ -94,15 +94,19 @@ function App() {
     }
   };
 
-  const handlePlay = () => {
-    if (isRecording) return
-    if (audioChunks.current.length == 0) return
-    stopRecord()
+  const initRecord = ()=>{
     if (!audioRef.current) {
       const blob = new Blob(audioChunks.current, { type: "audio/ogg; codecs=opus" });
       const url = URL.createObjectURL(blob)
       audioRef.current = new Audio(url);
     }
+  }
+
+  const handlePlay = () => {
+    if (isRecording) return
+    if (audioChunks.current.length == 0) return
+    stopRecord()
+    initRecord()
     if (isPlaying) {
       audioRef.current.pause()
     } else {
@@ -137,6 +141,7 @@ function App() {
         </div>
         <div className='textarea'>
           {data.map(e => <span className={currentTime > e.start && currentTime < e.end ? "active" : ""} onClick={() => {
+            initRecord()
             audioRef.current.currentTime = e.start
             audioRef.current.play()
             setIsPlaying(true)
