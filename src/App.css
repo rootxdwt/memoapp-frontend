@@ -1,0 +1,30 @@
+
+.content {
+color: #fff;
+padding: 20px;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 20px;
+  gap: 10px;
+  background-color: rgba(255,255,255,.1);
+  padding: 5px 10px;
+  border-radius: 10px;
+  border:solid 1px #2c2c2c;
+  & span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.textarea {
+  margin-top: 15px;
+  color: #bebebe;
+}
