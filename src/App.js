@@ -7,9 +7,12 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [data,setData] = useState([])
+  const [currentTime,setCurrentTime] = useState(0)
 
   const recorderRef = useRef();
   const audioChunks = useRef([]);
+
+  const audioRef = useRef()
 
   const isRecordingRef = useRef(false); 
   const isTranscribing = useRef(false)
@@ -64,8 +67,9 @@ function App() {
 
   const startRecord = () => {
     if (!recorderRef.current) return;
-    
-    audioChunks.current = []; 
+
+    audioChunks.current=[]
+    setData([])
     
     recorderRef.current.start(500);
     isRecordingRef.current = true; 
@@ -88,6 +92,33 @@ function App() {
       }
   };
 
+  const handlePlay = () => {
+    if(isRecording) return
+    if(audioChunks.current.length==0) return
+    stopRecord()
+    if(!audioRef.current) {
+      const blob = new Blob(audioChunks.current, { type: "audio/ogg; codecs=opus" });
+      const url = URL.createObjectURL(blob)
+      audioRef.current = new Audio(url);
+    }
+    if(isPlaying) {
+      audioRef.current.pause()
+    }else {
+      audioRef.current.play();
+    }
+    setIsPlaying(prev => !prev)
+
+  }
+
+  useEffect(()=>{
+    if(audioRef.current) {
+    const id = setInterval(()=>{
+      setCurrentTime(audioRef.current.currentTime)
+    })
+    return ()=>clearInterval(id)
+    }
+  },[isPlaying])
+
   return (
     <>
       <div className='content'>
@@ -98,12 +129,16 @@ function App() {
           >
             {isRecording ? <IoSquare /> : <IoEllipse />}
           </span>
-          <span onClick={() => setIsPlaying(prev => !prev)}>
+          <span onClick={handlePlay}>
             {isPlaying ? <IoPause /> : <IoPlay />}
           </span>
         </div>
         <div className='textarea'>
-          {data.map(e=>e.text).join("")}
+          {data.map(e=><span className={currentTime>e.start && currentTime<e.end ?"active":""} onClick={()=>{
+            audioRef.current.currentTime=e.start
+            audioRef.current.play()
+            setIsPlaying(true)
+          }}>{e.text}</span>)}
         </div>
       </div>
     </>

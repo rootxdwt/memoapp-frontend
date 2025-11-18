@@ -27,4 +27,9 @@ align-items: flex-start;
 .textarea {
   margin-top: 15px;
   color: #bebebe;
+  line-height: 25px;
+}
+
+.active{
+  background-color: rgba(229, 255, 0, 0.3);
 }
