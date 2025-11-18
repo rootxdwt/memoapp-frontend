@@ -6,15 +6,15 @@ import { useState, useRef, useEffect } from 'react';
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [data,setData] = useState([])
-  const [currentTime,setCurrentTime] = useState(0)
+  const [data, setData] = useState([])
+  const [currentTime, setCurrentTime] = useState(0)
 
   const recorderRef = useRef();
   const audioChunks = useRef([]);
 
   const audioRef = useRef()
 
-  const isRecordingRef = useRef(false); 
+  const isRecordingRef = useRef(false);
   const isTranscribing = useRef(false)
 
   useEffect(() => {
@@ -27,9 +27,9 @@ function App() {
           speechEvents.on('stopped_speaking', () => {
             // Check the Ref before transcribing
             if (!isRecordingRef.current) {
-                return; 
+              return;
             }
-            
+
             console.log("Transcribing");
             transcribe();
           });
@@ -47,84 +47,86 @@ function App() {
   }, []);
 
   const transcribe = async () => {
-    if(isTranscribing.current) return
-    isTranscribing.current=true
+    if (isTranscribing.current) return
+    isTranscribing.current = true
     if (audioChunks.current.length === 0) return;
 
     const blob = new Blob(audioChunks.current, { type: "audio/ogg; codecs=opus" });
 
     const form = new FormData();
     form.append('audio', blob, 'audio.ogg');
-    
+
     try {
-        const res = await fetch("http://localhost:5001/transcribe", { method: "POST", body: form });
-        setData(await res.json())
+      const res = await fetch("http://localhost:5001/transcribe", { method: "POST", body: form });
+      setData(await res.json())
     } catch (error) {
-        console.error("Transcription error", error);
+      console.error("Transcription error", error);
     }
-    isTranscribing.current=false
+    isTranscribing.current = false
   };
 
   const startRecord = () => {
     if (!recorderRef.current) return;
 
-    audioChunks.current=[]
+    audioRef.current = undefined
+    audioChunks.current = []
     setData([])
-    
+    setCurrentTime(0)
+
     recorderRef.current.start(500);
-    isRecordingRef.current = true; 
+    isRecordingRef.current = true;
     setIsRecording(true);
   };
 
   const stopRecord = () => {
     if (!recorderRef.current) return;
-    
+
     recorderRef.current.stop();
-    isRecordingRef.current = false; 
-    setIsRecording(false); 
+    isRecordingRef.current = false;
+    setIsRecording(false);
   };
 
   const handleToggleRecord = () => {
-      if (isRecording) {
-          stopRecord();
-      } else {
-          startRecord();
-      }
+    if (isRecording) {
+      stopRecord();
+    } else {
+      startRecord();
+    }
   };
 
   const handlePlay = () => {
-    if(isRecording) return
-    if(audioChunks.current.length==0) return
+    if (isRecording) return
+    if (audioChunks.current.length == 0) return
     stopRecord()
-    if(!audioRef.current) {
+    if (!audioRef.current) {
       const blob = new Blob(audioChunks.current, { type: "audio/ogg; codecs=opus" });
       const url = URL.createObjectURL(blob)
       audioRef.current = new Audio(url);
     }
-    if(isPlaying) {
+    if (isPlaying) {
       audioRef.current.pause()
-    }else {
+    } else {
       audioRef.current.play();
     }
     setIsPlaying(prev => !prev)
 
   }
 
-  useEffect(()=>{
-    if(audioRef.current) {
-    const id = setInterval(()=>{
-      setCurrentTime(audioRef.current.currentTime)
-    })
-    return ()=>clearInterval(id)
+  useEffect(() => {
+    if (audioRef.current && isPlaying) {
+      const id = setInterval(() => {
+        setCurrentTime(audioRef.current.currentTime)
+      })
+      return () => clearInterval(id)
     }
-  },[isPlaying])
+  }, [isPlaying])
 
   return (
     <>
       <div className='content'>
         <div className='controls'>
-          <span 
-            style={{ color: isRecording ? 'white' : 'red' }} 
+          <span
+            style={{ color: 'red' }}
             onClick={handleToggleRecord}
           >
             {isRecording ? <IoSquare /> : <IoEllipse />}
@@ -134,8 +136,8 @@ function App() {
           </span>
         </div>
         <div className='textarea'>
-          {data.map(e=><span className={currentTime>e.start && currentTime<e.end ?"active":""} onClick={()=>{
-            audioRef.current.currentTime=e.start
+          {data.map(e => <span className={currentTime > e.start && currentTime < e.end ? "active" : ""} onClick={() => {
+            audioRef.current.currentTime = e.start
             audioRef.current.play()
             setIsPlaying(true)
           }}>{e.text}</span>)}
